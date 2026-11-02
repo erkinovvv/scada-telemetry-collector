@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/*.tsbuildinfo
+.git/
+.vs/
+.vscode/
+.idea/
+tests/

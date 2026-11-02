@@ -1,0 +1,70 @@
+name: scada-telemetry
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: telemetry
+      POSTGRES_USER: telemetry
+      POSTGRES_PASSWORD: telemetry
+    # Настройки под постоянную запись: больше памяти под кеш и реже контрольные точки.
+    command:
+      - postgres
+      - -c
+      - shared_buffers=512MB
+      - -c
+      - effective_cache_size=1GB
+      - -c
+      - max_wal_size=2GB
+      - -c
+      - checkpoint_completion_target=0.9
+      - -c
+      - max_connections=200
+    volumes:
+      - pgdata:/var/lib/postgresql
+      # Тот же скрипт, что применяет API при старте: таблица готова сразу после первого запуска БД.
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U telemetry -d telemetry"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  api:
+    build:
+      context: .
+      dockerfile: src/Scada.Telemetry.Api/Dockerfile
+    environment:
+      ConnectionStrings__Telemetry: "Host=postgres;Port=5432;Database=telemetry;Username=telemetry;Password=telemetry;Maximum Pool Size=64;Max Auto Prepare=16;Auto Prepare Min Usages=2;Command Timeout=15"
+      Emulator__Enabled: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - api
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+
+  # Нагрузочный тест (не стартует по умолчанию): docker compose --profile loadtest run --rm k6
+  k6:
+    image: grafana/k6:1.0.0
+    profiles: ["loadtest"]
+    depends_on:
+      - api
+    environment:
+      BASE_URL: http://api:8080
+    volumes:
+      - ./load:/scripts:ro
+    command: ["run", "/scripts/telemetry.js"]
+
+volumes:
+  pgdata:
