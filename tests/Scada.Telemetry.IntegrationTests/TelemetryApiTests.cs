@@ -129,6 +129,20 @@ public sealed class TelemetryApiTests(PostgresFixture db) : IAsyncLifetime
         Assert.Contains("to", problem!.Errors.Keys);
     }
 
+    [Fact]
+    public async Task Batch_with_multiple_errors_in_last_record_returns_at_most_20_errors()
+    {
+        var batch = Enumerable.Repeat<object>(new { tagId = 0, timestamp = T0, value = 1, quality = 1 }, 19)
+            .Append(new { })
+            .ToArray();
+
+        var response = await _client.PostAsJsonAsync("/api/telemetry/batch", batch);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.Equal(20, problem!.Errors.Count);
+    }
+
     private sealed record IngestDto(long Inserted);
 
     private sealed record RecordDto(int TagId, DateTimeOffset Timestamp, double Value, int Quality);

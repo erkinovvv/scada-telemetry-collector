@@ -61,6 +61,11 @@ public static class TelemetryBatchValidator
 
     private static void Add(ref Dictionary<string, string[]>? errors, int index, string field, string message)
     {
+        if (errors?.Count >= MaxReportedErrors)
+        {
+            return;
+        }
+
         errors ??= [];
         errors.TryAdd($"[{index}].{field}", [message]);
     }

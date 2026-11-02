@@ -87,4 +87,20 @@ public sealed class TelemetryBatchValidatorTests
 
         Assert.Equal(TelemetryBatchValidator.MaxReportedErrors, errors!.Count);
     }
+
+    [Theory]
+    [InlineData(17)]
+    [InlineData(18)]
+    [InlineData(19)]
+    public void Multiple_errors_in_the_last_record_do_not_exceed_the_cap(int precedingErrors)
+    {
+        var batch = Enumerable.Repeat(new TelemetryRecordRequest(0, Now, 1, 1), precedingErrors)
+            .Append(new TelemetryRecordRequest(null, null, null, null))
+            .ToArray();
+
+        var errors = TelemetryBatchValidator.Validate(batch, 1000);
+
+        Assert.Equal(TelemetryBatchValidator.MaxReportedErrors, errors!.Count);
+        Assert.Contains($"[{precedingErrors}].tagId", errors.Keys);
+    }
 }
