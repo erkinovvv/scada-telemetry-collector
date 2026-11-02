@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Scada.Telemetry.Application\Scada.Telemetry.Application.csproj" />
+    <ProjectReference Include="..\..\src\Scada.Telemetry.Api\Scada.Telemetry.Api.csproj" />
+  </ItemGroup>
+</Project>
