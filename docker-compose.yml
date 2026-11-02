@@ -37,7 +37,8 @@ services:
       context: .
       dockerfile: src/Scada.Telemetry.Api/Dockerfile
     environment:
-      ConnectionStrings__Telemetry: "Host=postgres;Port=5432;Database=telemetry;Username=telemetry;Password=telemetry;Maximum Pool Size=64;Max Auto Prepare=16;Auto Prepare Min Usages=2;Command Timeout=15"
+      # В локальном Compose используется пароль, а chiseled-образ не содержит Kerberos.
+      ConnectionStrings__Telemetry: "Host=postgres;Port=5432;Database=telemetry;Username=telemetry;Password=telemetry;Maximum Pool Size=64;Max Auto Prepare=16;Auto Prepare Min Usages=2;Command Timeout=15;GSS Encryption Mode=Disable"
       Emulator__Enabled: "true"
     depends_on:
       postgres:
