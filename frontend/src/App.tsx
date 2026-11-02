@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { fetchHistory, fetchLatest } from './api';
 import { TrendChart } from './TrendChart';
+import { getHistoryLimit } from './trend';
 import { usePolling } from './usePolling';
 
 const TAG_COUNT = 100;
@@ -20,7 +21,7 @@ export function App() {
 
   // Текущее значение — раз в секунду (как часто пишет эмулятор), тренд — раз в 5 секунд.
   const latest = usePolling((signal) => fetchLatest(tagId, signal), 1000, [tagId]);
-  const history = usePolling((signal) => fetchHistory(tagId, windowMs, 1000, signal), 5000, [tagId, windowMs]);
+  const history = usePolling((signal) => fetchHistory(tagId, windowMs, getHistoryLimit(windowMs), signal), 5000, [tagId, windowMs]);
 
   const current = latest.data;
   const isBad = current?.quality === 0;

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Measurement } from './api';
+import { sampleTrendPoints } from './trend';
 
 interface Props {
   points: Measurement[];
@@ -29,9 +30,8 @@ export function TrendChart({ points, windowMs }: Props) {
     const WIDTH = width;
     const now = Date.now();
     const x0 = now - windowMs;
-    const sorted = points
-      .map((p) => ({ t: Date.parse(p.timestamp), v: p.value, bad: p.quality === 0 }))
-      .sort((a, b) => a.t - b.t);
+    const sorted = sampleTrendPoints(points)
+      .map((p) => ({ t: Date.parse(p.timestamp), v: p.value, bad: p.quality === 0 }));
 
     if (sorted.length === 0) return null;
 
