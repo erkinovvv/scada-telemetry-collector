@@ -17,7 +17,7 @@ internal sealed class NpgsqlTelemetryRepository(NpgsqlDataSource dataSource) : I
     private const string CopySql =
         """COPY telemetry_records (tag_id, "timestamp", value, quality) FROM STDIN (FORMAT BINARY)""";
 
-    // Оба запроса идут по индексу (tag_id, "timestamp" DESC) INCLUDE (value, quality): Index Only Scan, LIMIT 1.
+    // Покрывающий индекс допускает Index Only Scan; обращения к heap зависят от visibility map.
     private const string LatestSql =
         """
         SELECT "timestamp", value, quality

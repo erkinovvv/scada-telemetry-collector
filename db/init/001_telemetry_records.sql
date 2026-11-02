@@ -13,8 +13,8 @@ CREATE TABLE IF NOT EXISTS telemetry_records
 );
 
 -- Основной индекс для чтения истории по тегу за диапазон времени.
--- INCLUDE (value, quality) делает индекс покрывающим: запросы latest/history
--- выполняются как Index Only Scan, без обращения к строкам таблицы (heap).
+-- INCLUDE (value, quality) позволяет выполнять latest/history через Index Only Scan.
+-- Обращения к heap всё ещё нужны для страниц без отметки all-visible в visibility map.
 CREATE INDEX IF NOT EXISTS ix_telemetry_records_tag_id_timestamp
     ON telemetry_records (tag_id, "timestamp" DESC)
     INCLUDE (value, quality);
