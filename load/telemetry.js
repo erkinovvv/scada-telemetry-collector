@@ -43,7 +43,9 @@ export const options = {
     },
   },
   thresholds: {
-    http_req_failed: ['rate<0.01'],
+    http_req_failed: ['rate==0'],
+    checks: ['rate==1'],
+    dropped_iterations: ['count==0'],
     'http_req_duration{scenario:ingest}': ['p(95)<500'],
     'http_req_duration{scenario:latest}': ['p(95)<100'],
     'http_req_duration{scenario:history}': ['p(95)<200'],
@@ -68,7 +70,16 @@ export function ingest() {
     headers: { 'Content-Type': 'application/json' },
     tags: { name: 'POST /api/telemetry/batch' },
   });
-  check(res, { 'batch saved': (r) => r.status === 200 });
+  check(res, {
+    'batch saved': (r) => {
+      if (r.status !== 200) return false;
+      try {
+        return r.json('inserted') === BATCH_SIZE;
+      } catch {
+        return false;
+      }
+    },
+  });
 }
 
 export function latest() {
