@@ -83,6 +83,12 @@ public sealed class TelemetryService(
         }
 
         var effectiveTo = (to ?? timeProvider.GetUtcNow()).ToUniversalTime();
+        if (from is null && effectiveTo - DateTimeOffset.MinValue < _options.DefaultHistoryWindow)
+        {
+            return ServiceResult<IReadOnlyList<TelemetryRecord>>.Invalid(
+                "to", "to is too early for the default history window; provide from explicitly.");
+        }
+
         var effectiveFrom = (from ?? effectiveTo - _options.DefaultHistoryWindow).ToUniversalTime();
         if (effectiveFrom >= effectiveTo)
         {

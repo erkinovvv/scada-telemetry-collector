@@ -119,6 +119,16 @@ public sealed class TelemetryApiTests(PostgresFixture db) : IAsyncLifetime
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
+    [Fact]
+    public async Task History_with_to_before_default_window_is_a_validation_error()
+    {
+        var response = await _client.GetAsync("/api/tags/1/history?to=0001-01-01T00:00:00Z");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.Contains("to", problem!.Errors.Keys);
+    }
+
     private sealed record IngestDto(long Inserted);
 
     private sealed record RecordDto(int TagId, DateTimeOffset Timestamp, double Value, int Quality);

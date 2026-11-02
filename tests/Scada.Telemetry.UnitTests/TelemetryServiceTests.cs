@@ -61,6 +61,44 @@ public sealed class TelemetryServiceTests
         Assert.Contains("limit", result.Errors!.Keys);
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(30)]
+    [InlineData(59)]
+    public async Task History_rejects_to_when_default_window_would_underflow(int minutes)
+    {
+        var to = DateTimeOffset.MinValue.AddMinutes(minutes).ToOffset(TimeSpan.FromHours(5));
+
+        var result = await _service.GetHistoryAsync(1, null, to, 10, CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("to", result.Errors!.Keys);
+        Assert.Null(_repository.LastHistoryQuery);
+    }
+
+    [Fact]
+    public async Task History_allows_default_window_starting_at_minimum_timestamp()
+    {
+        var to = DateTimeOffset.MinValue.AddHours(1);
+
+        var result = await _service.GetHistoryAsync(1, null, to, 10, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal((DateTimeOffset.MinValue, to, 10), _repository.LastHistoryQuery);
+    }
+
+    [Fact]
+    public async Task History_allows_early_to_when_from_is_explicit()
+    {
+        var from = DateTimeOffset.MinValue.AddMinutes(5);
+        var to = DateTimeOffset.MinValue.AddMinutes(30);
+
+        var result = await _service.GetHistoryAsync(1, from, to, 10, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal((from, to, 10), _repository.LastHistoryQuery);
+    }
+
     [Fact]
     public async Task History_rejects_inverted_range()
     {
