@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <!-- Hosting, HealthChecks, Logging берём из общего фреймворка ASP.NET Core, без отдельных пакетов. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Scada.Telemetry.Application\Scada.Telemetry.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Единственный источник схемы — db/init/*.sql. Тот же файл монтируется в контейнер Postgres. -->
+    <EmbeddedResource Include="..\..\db\init\001_telemetry_records.sql" LogicalName="Schema.001_telemetry_records.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Scada.Telemetry.IntegrationTests" />
+  </ItemGroup>
+</Project>
