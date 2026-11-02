@@ -10,6 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default));
 
+// Битый JSON или неверный параметр — это ошибка клиента (400) в любом окружении.
+// По умолчанию в Development minimal API бросает исключение, и его превращает в 500 обработчик ошибок.
+builder.Services.Configure<RouteHandlerOptions>(options => options.ThrowOnBadRequest = false);
+
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 
